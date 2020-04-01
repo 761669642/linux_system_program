@@ -17,5 +17,5 @@ int ok_to_execute();
 int is_control_command(char *s);
 int do_control_command(char **args);
 
-
+int builtin_command();
 #endif
