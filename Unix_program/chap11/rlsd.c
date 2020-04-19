@@ -55,14 +55,19 @@ int main(int argc, char *argv[])
 		sock_fd = accept(sock_id, NULL, NULL);
 		if (sock_fd == -1)
 			oops("accept")
-		if ((sock_fpi = fdopen(sock_id, "r")) == NULL)
+		if ((sock_fpi = fdopen(sock_fd, "r")) == NULL)
 			oops("fdopen reading")
 		if (fgets(dirname, 195, sock_fpi) == NULL)
 			oops("reading dirname")
 		sanitize(dirname);
 		
 		if ((sock_fpo = fdopen(sock_fd, "w")) == NULL)
+			oops("fdopen writing")
+
+		sprintf(command, "ls %s", dirname);
+		if ((pipe_fp = popen(command, "r")) == NULL)
 			oops("popen")
+
 		while ((c = getc(pipe_fp)) != EOF)
 			putc(c, sock_fpo);
 		pclose(pipe_fp);
