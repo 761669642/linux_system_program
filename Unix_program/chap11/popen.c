@@ -30,7 +30,7 @@ FILE *Mypopen(char *command, char *mode)
 	} else if (pid > 0) {
 		if (close(pfp[child_end] == -1))
 			return NULL;
-		return fdopen(pfp[parent_end], mode);//notice that  mode="w/r" instead of 'w/r'(*mode)
+		return fdopen(pfp[parent_end], mode);//notice that  mode="w" then *mode='w'
 	} else {
 		if (close(pfp[parent_end]) == -1) exit(1);
 		if (dup2(pfp[child_end], child_end) == -1) exit(1);
