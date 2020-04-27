@@ -5,6 +5,7 @@
 
 int total_words;
 void *count_words(void *);
+pthread_mutex_t counter_lock = PTHREAD_MUTEX_INITIALIZER;
 
 int main(int argc, char **argv)
 {
@@ -32,8 +33,11 @@ void *count_words(void *f)
 		exit(1);
 	}
 	while ((c = getc(fp)) != EOF) {  //here, variable c will read '\n' as a char
-		if (!isalnum(c) && isalnum(prevc))
+		if (!isalnum(c) && isalnum(prevc)) {
+			pthread_mutex_lock(&counter_lock);
 			total_words++;
+			pthread_mutex_unlock(&counter_lock);
+		}
 		prevc = c;
 	}
 	if (prevc == '\n')
