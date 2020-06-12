@@ -21,13 +21,13 @@ int main()
 		return 0;
 	}
 //	sleep(1);
-
+	printf("tid is %d\n", tid);
 	ret = pthread_kill(tid, SIGQUIT);
-	if (ret) {
-		fprintf(stderr, "the thread is not killed, there may be errors\n");
-		return 0;
-	}
+//	if (ret) {
+//		fprintf(stderr, "the thread is not killed, there may be errors\n");
+//	}
 
 	ret = pthread_join(tid, &rval);
-	printf("the return val of join thread is %d\n", (int) rval);
+	printf("the return val of join thread is %d\n", (int)rval);
+	return 0;
 }
