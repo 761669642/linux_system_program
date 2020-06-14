@@ -1,5 +1,6 @@
 #include <pthread.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #define BUFF_SIZE 5
 //#define PRODUCT_CNT 30
@@ -15,17 +16,17 @@ struct product_cons {
 void init(struct product_cons *p)
 {
 	pthread_mutex_init(&p->lock, NULL);
-	pthread_cond_int(&notempty, NULL);
-	pthread_cond_int(&notfull, NULL);
+	pthread_cond_init(&p->notempty, NULL);
+	pthread_cond_init(&p->notfull, NULL);
 	p->readpos = 0;
 	p->writepos = 0;
 }
 
 void finish(struct product_cons *p)
 {
-	pthread_mutex_destory(&p->lock);
-	pthread_cond_destory(&notempty);
-	pthread_cond_destroy(&notfull);
+	pthread_mutex_destroy(&p->lock);
+	pthread_cond_destroy(&p->notempty);
+	pthread_cond_destroy(&p->notfull);
 	p->readpos = 0;
 	p->writepos = 0;
 }
@@ -34,18 +35,34 @@ void put(struct product_cons *p, int data)
 {
 	pthread_mutex_lock(&p->lock);
 	if ((p->writepos+1) % BUFF_SIZE == p->readpos) {
-		printf("producer wait for not full");
+		printf("producer wait for not full\n");
 		pthread_cond_wait(&p->notfull, &p->lock);
 	}
 	p->buffer[p->writepos] = data;
-	if (p->writepos
+	p->writepos++;
+	if (p->writepos >= BUFF_SIZE)
+		p->writepos = 0;
 
+	pthread_cond_signal(&p->notempty);
 	pthread_mutex_unlock(&p->lock);
 }
 
 int get(struct product_cons *p)
 {
+	int data;
+	pthread_mutex_lock(&p->lock);
+	if (p->readpos == p->writepos) {
+		printf("consumer wait for not empty\n");
+		pthread_cond_wait(&p->notempty, &p->lock);
+	}
+	data = p->buffer[p->readpos];
+	p->readpos++;
+	if (p->readpos >= BUFF_SIZE)
+		p->readpos = 0;
 	
+	pthread_cond_signal(&p->notfull);
+	pthread_mutex_unlock(&p->lock);
+	return data;
 }
 
 void *producer(void *data)
@@ -67,7 +84,7 @@ void *consumer(void *data)
 	int num;
 	while (1) {
 		sleep(2);
-		printf("get product");
+		printf("get product\n");
 		num = get(&buffer);
 		printf("get the %d product success!!!!\n", num);
 		if (cnt++ == 30) break;
